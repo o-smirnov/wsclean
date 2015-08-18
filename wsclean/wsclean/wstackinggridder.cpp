@@ -8,7 +8,7 @@
 
 #include <boost/thread/thread.hpp>
 
-WStackingGridder::WStackingGridder(size_t width, size_t height, double pixelSizeX, double pixelSizeY, size_t fftThreadCount, ImageBufferAllocator<double>* allocator, size_t kernelSize, size_t overSamplingFactor) :
+WStackingGridder::WStackingGridder(size_t width, size_t height, double pixelSizeX, double pixelSizeY, size_t fftThreadCount, ImageBufferAllocator* allocator, size_t kernelSize, size_t overSamplingFactor) :
 	_width(width),
 	_height(height),
 	_pixelSizeX(pixelSizeX),
@@ -387,7 +387,7 @@ void WStackingGridder::AddDataSample(std::complex<float> sample, double uInLambd
 	}
 }
 
-void WStackingGridder::SampleDataSample(std::complex<float>& value, double uInLambda, double vInLambda, double wInLambda)
+void WStackingGridder::SampleDataSample(std::complex<double>& value, double uInLambda, double vInLambda, double wInLambda)
 {
 	const size_t
 		layerOffset = layerRangeStart(_curLayerRangeIndex),
@@ -616,11 +616,11 @@ void WStackingGridder::initializeSqrtLMLookupTable()
 	}
 }
 
-template<bool IsComplex>
+template<bool IsComplexImpl>
 void WStackingGridder::projectOnImageAndCorrect(const std::complex<double> *source, double w, size_t threadIndex)
 {
 	double *dataReal = _imageData[threadIndex], *dataImaginary;
-	if(IsComplex)
+	if(IsComplexImpl)
 		dataImaginary = _imageDataImaginary[threadIndex];
 	
 	const double twoPiW = -2.0 * M_PI * w;
@@ -643,7 +643,7 @@ void WStackingGridder::projectOnImageAndCorrect(const std::complex<double> *sour
 				source->real() * s + source->imag() * c
 			);*/
 			dataReal[xSrc + ySrc*_width] += source->real()*c - source->imag()*s;
-			if(IsComplex)
+			if(IsComplexImpl)
 			{
 				if(_imageConjugatePart)
 					dataImaginary[xSrc + ySrc*_width] += -source->real()*s + source->imag()*c;
@@ -684,11 +684,11 @@ void WStackingGridder::initializeSqrtLMLookupTableForSampling()
 	}
 }
 
-template<bool IsComplex>
+template<bool IsComplexImpl>
 void WStackingGridder::copyImageToLayerAndInverseCorrect(std::complex<double> *dest, double w)
 {
 	double *dataReal = _imageData[0], *dataImaginary;
-	if(IsComplex)
+	if(IsComplexImpl)
 		dataImaginary = _imageDataImaginary[0];
 	
 	const double twoPiW = 2.0 * M_PI * w;
@@ -713,7 +713,7 @@ void WStackingGridder::copyImageToLayerAndInverseCorrect(std::complex<double> *d
 			double s, c;
 			sincos(rad, &s, &c);
 			double realVal = dataReal[xDest + yDest*_width];
-			if(IsComplex)
+			if(IsComplexImpl)
 			{
 				double imagVal = -dataImaginary[xDest + yDest*_width];
 				*dest = std::complex<double>(realVal*c + imagVal*s, imagVal*c - realVal*s);

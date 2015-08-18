@@ -2,8 +2,12 @@ cmake_minimum_required(VERSION 2.6)
 
 project(wsclean)
 
-set(CMAKE_CXX_FLAGS "-O3 -Wall -DNDEBUG -march=native -msse4.1 -ggdb")
-
+if(PORTABLE)
+  set(CMAKE_CXX_FLAGS "-O3 -Wall -DNDEBUG -ggdb")
+else()
+  set(CMAKE_CXX_FLAGS "-O3 -Wall -DNDEBUG -march=native -msse4.1 -ggdb") 
+endif(PORTABLE)
+  
 find_library(CASA_MS_LIB casa_ms REQUIRED)
 find_library(CASA_TABLES_LIB casa_tables REQUIRED)
 find_library(CASA_CASA_LIB casa_casa REQUIRED)
@@ -23,7 +27,7 @@ find_library(GSL_CBLAS_LIB NAMES gslcblas)
 
 set(CASA_LIBS ${CASA_MS_LIB} ${CASA_TABLES_LIB} ${CASA_MEASURES_LIB} ${CASA_CASA_LIB} ${CASA_FITS_LIB} ${DL_LIB})
 
-find_path(CASA_INCLUDE_DIR NAMES ms/MeasurementSets/MeasurementSet.h PATHS /usr/local/include/casacore PATH_SUFFIXES casacore)
+find_path(CASA_INCLUDE_DIR NAMES casacore/ms/MeasurementSets/MeasurementSet.h PATHS /usr/local/include/)
 
 find_path(LOFAR_STATION_RESPONSE_DIR NAMES StationResponse/Station.h)
 find_library(LOFAR_STATION_RESPONSE_LIB stationresponse)
@@ -88,7 +92,15 @@ IF("${isSystemDir}" STREQUAL "-1")
    SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 ENDIF("${isSystemDir}" STREQUAL "-1")
 
-add_library(wsclean-lib casamaskreader.cpp dftpredictionalgorithm.cpp fftconvolver.cpp fftresampler.cpp fftwmultithreadenabler.cpp fitsiochecker.cpp fitsreader.cpp fitswriter.cpp imageweights.cpp nlplfitter.cpp modelrenderer.cpp progressbar.cpp stopwatch.cpp deconvolution/deconvolution.cpp deconvolution/deconvolutionalgorithm.cpp deconvolution/joinedclean.cpp deconvolution/moresane.cpp deconvolution/multiscaleclean.cpp deconvolution/simpleclean.cpp interface/wscleaninterface.cpp iuwt/imageanalysis.cpp iuwt/iuwtdecomposition.cpp iuwt/iuwtdeconvolutionalgorithm.cpp iuwt/iuwtmask.cpp model/model.cpp msproviders/contiguousms.cpp msproviders/msprovider.cpp msproviders/partitionedms.cpp wsclean/imagingtable.cpp wsclean/wsclean.cpp wsclean/wsmsgridder.cpp wsclean/wstackinggridder.cpp ${LBEAM_FILES})
+add_library(wsclean-lib
+  casamaskreader.cpp dftpredictionalgorithm.cpp fftconvolver.cpp fftresampler.cpp fftwmultithreadenabler.cpp fitsiochecker.cpp fitsreader.cpp fitswriter.cpp imageweights.cpp nlplfitter.cpp modelrenderer.cpp progressbar.cpp stopwatch.cpp
+  deconvolution/deconvolution.cpp deconvolution/deconvolutionalgorithm.cpp deconvolution/fastmultiscaleclean.cpp deconvolution/joinedclean.cpp deconvolution/moresane.cpp deconvolution/simpleclean.cpp
+  interface/wscleaninterface.cpp
+  iuwt/imageanalysis.cpp iuwt/iuwtdecomposition.cpp iuwt/iuwtdeconvolutionalgorithm.cpp iuwt/iuwtmask.cpp
+  model/model.cpp
+  msproviders/contiguousms.cpp msproviders/msprovider.cpp msproviders/partitionedms.cpp
+  multiscale/multiscalealgorithm.cpp multiscale/multiscaletransforms.cpp multiscale/threadeddeconvolutiontools.cpp
+  wsclean/imagingtable.cpp wsclean/wsclean.cpp wsclean/wsmsgridder.cpp wsclean/wstackinggridder.cpp ${LBEAM_FILES})
 set_target_properties(wsclean-lib PROPERTIES OUTPUT_NAME wsclean)
 
 add_executable(wsclean wscleanmain.cpp)

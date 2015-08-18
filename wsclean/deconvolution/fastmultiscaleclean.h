@@ -1,5 +1,5 @@
-#ifndef MULTI_SCALE_CLEAN_H
-#define MULTI_SCALE_CLEAN_H
+#ifndef FAST_MULTI_SCALE_CLEAN_H
+#define FAST_MULTI_SCALE_CLEAN_H
 
 #include "deconvolutionalgorithm.h"
 #include "imageset.h"
@@ -8,10 +8,10 @@
 #include "../uvector.h"
 
 template<typename ImageSetType>
-class MultiScaleClean : public TypedDeconvolutionAlgorithm<ImageSetType>
+class FastMultiScaleClean : public TypedDeconvolutionAlgorithm<ImageSetType>
 {
 public:
-	MultiScaleClean(double beamSize, double pixelSizeX, double pixelSizeY) :
+	FastMultiScaleClean(double beamSize, double pixelSizeX, double pixelSizeY) :
 		_startScale(64.0 * beamSize / pixelSizeX),
 		_minScale(0.0),
 		_beamSize(beamSize),
@@ -97,7 +97,7 @@ private:
 	
 	struct CleanThreadData
 	{
-		MultiScaleClean<ImageSetType>* parent;
+		FastMultiScaleClean<ImageSetType>* parent;
 		size_t startY, endY;
 	};
 

@@ -1,4 +1,4 @@
-#include "multiscaleclean.h"
+#include "fastmultiscaleclean.h"
 #include "joinedclean.h"
 
 #include "../lane.h"
@@ -10,7 +10,7 @@
 #include <iostream>
 
 template<typename ImageSetType>
-void MultiScaleClean<ImageSetType>::ExecuteMajorIteration(ImageSetType& dataImage, ImageSetType& modelImage, std::vector<double*> psfImages, size_t width, size_t height, bool& reachedStopGain)
+void FastMultiScaleClean<ImageSetType>::ExecuteMajorIteration(ImageSetType& dataImage, ImageSetType& modelImage, std::vector<double*> psfImages, size_t width, size_t height, bool& reachedStopGain)
 {
 	if(this->_stopOnNegativeComponent)
 		this->_allowNegativeComponents = true;
@@ -56,9 +56,9 @@ void MultiScaleClean<ImageSetType>::ExecuteMajorIteration(ImageSetType& dataImag
 }
 
 template<typename ImageSetType>
-void MultiScaleClean<ImageSetType>::executeMajorIterationForScale(double currentScale, double nextScale, bool& reachedStopGain, bool& canCleanFurther)
+void FastMultiScaleClean<ImageSetType>::executeMajorIterationForScale(double currentScale, double nextScale, bool& reachedStopGain, bool& canCleanFurther)
 {
-	ImageBufferAllocator<double>& allocator = *_dataImageOriginal->Allocator();
+	ImageBufferAllocator& allocator = *_dataImageOriginal->Allocator();
 	// Scale down the image so that the "scale size" is 10 pixels
 	// 10 pixels is so that the peak finding is still reasonably accurate
 	_rescaledWidth = size_t(ceil(double(_originalWidth)*(10.0/currentScale))),
@@ -162,7 +162,7 @@ void MultiScaleClean<ImageSetType>::executeMajorIterationForScale(double current
 		cleanThreadData.startY = (_rescaledHeight*i)/cpuCount;
 		cleanThreadData.endY = _rescaledHeight*(i+1)/cpuCount;
 		cleanThreadData.parent = this;
-		threadGroup.add_thread(new boost::thread(&MultiScaleClean<ImageSetType>::cleanThreadFunc, this, &*taskLanes[i], &*resultLanes[i], cleanThreadData));
+		threadGroup.add_thread(new boost::thread(&FastMultiScaleClean<ImageSetType>::cleanThreadFunc, this, &*taskLanes[i], &*resultLanes[i], cleanThreadData));
 	}
 	
 	while(fabs(peakNormalized) > firstThreshold*thresholdBias && this->_iterationNumber < this->_maxIter && !(largeScaleImage.IsComponentNegative(peakIndex) && this->_stopOnNegativeComponent))
@@ -258,7 +258,7 @@ void MultiScaleClean<ImageSetType>::executeMajorIterationForScale(double current
 }
 
 template<typename ImageSetType>
-void MultiScaleClean<ImageSetType>::findPeak(size_t& x, size_t& y, size_t startY, size_t stopY) const
+void FastMultiScaleClean<ImageSetType>::findPeak(size_t& x, size_t& y, size_t startY, size_t stopY) const
 {
 	double peakMax = std::numeric_limits<double>::min();
 	const size_t lastIndex = _rescaledWidth*_rescaledHeight;
@@ -307,7 +307,7 @@ void MultiScaleClean<ImageSetType>::findPeak(size_t& x, size_t& y, size_t startY
 }
 
 template<typename ImageSetType>
-void MultiScaleClean<ImageSetType>::cleanThreadFunc(ao::lane<CleanTask> *taskLane, ao::lane<CleanResult> *resultLane, CleanThreadData cleanData)
+void FastMultiScaleClean<ImageSetType>::cleanThreadFunc(ao::lane<CleanTask> *taskLane, ao::lane<CleanResult> *resultLane, CleanThreadData cleanData)
 {
 	CleanTask task;
 	// This initialization is not really necessary, but gcc warns about possible uninitialized values otherwise
@@ -338,7 +338,7 @@ void MultiScaleClean<ImageSetType>::cleanThreadFunc(ao::lane<CleanTask> *taskLan
 }
 
 template<typename ImageSetType>
-std::string MultiScaleClean<ImageSetType>::peakDescription(const ImageSetType& image, size_t x, size_t y, double rescaleFactor)
+std::string FastMultiScaleClean<ImageSetType>::peakDescription(const ImageSetType& image, size_t x, size_t y, double rescaleFactor)
 {
 	std::ostringstream str;
 	size_t index = x + y*_rescaledWidth;
@@ -347,10 +347,10 @@ std::string MultiScaleClean<ImageSetType>::peakDescription(const ImageSetType& i
 	return str.str();
 }
 
-template class MultiScaleClean<deconvolution::SingleImageSet>;
-template class MultiScaleClean<deconvolution::PolarizedImageSet<2>>;
-template class MultiScaleClean<deconvolution::PolarizedImageSet<4>>;
+template class FastMultiScaleClean<deconvolution::SingleImageSet>;
+template class FastMultiScaleClean<deconvolution::PolarizedImageSet<2>>;
+template class FastMultiScaleClean<deconvolution::PolarizedImageSet<4>>;
 
-template class MultiScaleClean<deconvolution::MultiImageSet<deconvolution::SingleImageSet>>;
-template class MultiScaleClean<deconvolution::MultiImageSet<deconvolution::PolarizedImageSet<2>>>;
-template class MultiScaleClean<deconvolution::MultiImageSet<deconvolution::PolarizedImageSet<4>>>;
+template class FastMultiScaleClean<deconvolution::MultiImageSet<deconvolution::SingleImageSet>>;
+template class FastMultiScaleClean<deconvolution::MultiImageSet<deconvolution::PolarizedImageSet<2>>>;
+template class FastMultiScaleClean<deconvolution::MultiImageSet<deconvolution::PolarizedImageSet<4>>>;

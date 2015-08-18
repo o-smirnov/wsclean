@@ -24,10 +24,11 @@ class MoreSane : public TypedDeconvolutionAlgorithm<deconvolution::SingleImageSe
 		void ExecuteMajorIteration(double* dataImage, double* modelImage, const double* psfImage, size_t width, size_t height, bool& reachedMajorThreshold);
 	private:
 		const std::string _moresaneLocation, _moresaneArguments;
+
 		const std::vector<std::string> _moresaneSigmaLevels;
 		const std::string _prefixName;
 		
-		ImageBufferAllocator<double>* _allocator;
+		ImageBufferAllocator* _allocator;
 };
 
 #endif

@@ -845,7 +845,7 @@ void WSClean::runIndependentGroup(const ImagingTable& groupTable)
 				"(beam=" + Angle::ToNiceString(beamMin) + "-" +
 				Angle::ToNiceString(beamMaj) + ", PA=" +
 				Angle::ToNiceString(beamPA) + ")";
-			if(_deconvolution.MultiScale() || _deconvolution.UseMoreSane() || _deconvolution.UseIUWT())
+			if(_deconvolution.MultiScale() || _deconvolution.FastMultiScale() || _deconvolution.UseMoreSane() || _deconvolution.UseIUWT())
 			{
 				std::cout << "Rendering sources to restored image " + beamStr + "... " << std::flush;
 				renderer.Restore(restoredImage, modelImage, _imgWidth, _imgHeight, beamMaj, beamMin, beamPA, Polarization::StokesI);
@@ -886,7 +886,7 @@ void WSClean::runIndependentGroup(const ImagingTable& groupTable)
 void WSClean::writeFirstResidualImages(const ImagingTable& groupTable)
 {
 	std::cout << "Writing first iteration image(s)...\n";
-	ImageBufferAllocator<double>::Ptr ptr;
+	ImageBufferAllocator::Ptr ptr;
 	_imageAllocator.Allocate(_imgWidth*_imgHeight, ptr);
 	for(size_t e=0; e!=groupTable.EntryCount(); ++e)
 	{
@@ -906,7 +906,7 @@ void WSClean::writeFirstResidualImages(const ImagingTable& groupTable)
 void WSClean::writeModelImages(const ImagingTable& groupTable)
 {
 	std::cout << "Writing model image...\n";
-	ImageBufferAllocator<double>::Ptr ptr;
+	ImageBufferAllocator::Ptr ptr;
 	_imageAllocator.Allocate(_imgWidth*_imgHeight, ptr);
 	for(size_t e=0; e!=groupTable.EntryCount(); ++e)
 	{
@@ -945,9 +945,11 @@ void WSClean::predictGroup(const ImagingTable& imagingGroup)
 			if(reader.ImageWidth()!=_imgWidth || reader.ImageHeight()!=_imgHeight)
 				throw std::runtime_error("Inconsistent image size: input image did not match with specified dimensions.");
 			reader.Read(buffer);
-			for(size_t i=0; i!=_imgWidth*_imgHeight; ++i)
-				if(!std::isfinite(buffer[i]))
+			for(size_t j=0; j!=_imgWidth*_imgHeight; ++j)
+			{
+				if(!std::isfinite(buffer[j]))
 					throw std::runtime_error("The input image contains non-finite values -- can't predict from an image with non-finite values");
+			}
 			_modelImages.Store(buffer, entry.polarization, 0, i==1);
 			_imageAllocator.Free(buffer);
 		}
