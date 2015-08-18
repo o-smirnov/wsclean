@@ -228,7 +228,7 @@ void Deconvolution::InitializeDeconvolutionAlgorithm(const ImagingTable& groupTa
 	
 	if(_useMoreSane)
 	{
-		_cleanAlgorithm.reset(new MoreSane(_moreSaneLocation, _moreSaneArgs));
+		_cleanAlgorithm.reset(new MoreSane(_moreSaneLocation, _moreSaneArgs, _moreSaneSigmaLevels, _prefixName));
 	}
 	else if(_useIUWT)
 	{

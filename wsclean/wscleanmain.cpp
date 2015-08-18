@@ -193,6 +193,9 @@ int main(int argc, char *argv[])
 			"-moresane-arg <arguments>\n"
 			"   Pass the specified arguments to moresane. Note that multiple parameters have to be\n"
 			"   enclosed in quotes.\n"
+			"-moresane-sl <sl1,sl2,...>\n"
+			"   MoreSane --sigmalevel setting for each major loop iteration. Useful to start at high\n"
+			"   levels and go down with subsequent loops, e.g. 20,10,5\n"
 			"\n"
 			"  ** RESTORATION OPTIONS **\n"
 			"-beamsize <arcsec>\n"
@@ -317,6 +320,13 @@ int main(int argc, char *argv[])
 			++argi;
 			wsclean.DeconvolutionInfo().SetMoreSaneArgs(argv[argi]);
 		}
+		else if(param == "moresane-sl")
+		{
+			++argi;
+			std::vector<std::string> slevels;
+			boost::split(slevels, argv[argi], boost::is_any_of(","));
+			wsclean.DeconvolutionInfo().SetMoreSaneSigmaLevels(slevels);
+		}
 		else if(param == "makepsf")
 		{
 			wsclean.SetMakePSF(true);
@@ -343,6 +353,7 @@ int main(int argc, char *argv[])
 		{
 			++argi;
 			wsclean.SetPrefixName(argv[argi]);
+			wsclean.DeconvolutionInfo().SetPrefixName(argv[argi]);
 		}
 		else if(param == "gridmode")
 		{
