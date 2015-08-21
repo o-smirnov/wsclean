@@ -48,7 +48,7 @@ void MoreSane::ExecuteMajorIteration(double* dataImage, double* modelImage, cons
 	commandLine << "\"" << dirtyName << "\" \"" << psfName << "\" \"" <<  outputName << '\"';
 	
 	if(!_moresaneSigmaLevels.empty()) {
-		commandLine << " -sl " << _moresaneSigmaLevels[std::max(_iterationNumber,_moresaneSigmaLevels.size()-1)] << " ";
+		commandLine << " -sl " << _moresaneSigmaLevels[std::min(_iterationNumber,_moresaneSigmaLevels.size()-1)] << " ";
 	}
 	
 	std::cout << "Running: " << commandLine.str() << std::endl;
